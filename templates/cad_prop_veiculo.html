@@ -4,7 +4,7 @@
 
 {% block abas %}
     <li class="nav-item">
-        <a class="nav-link active" id="custom-consulta-proprietario" data-toggle="pill" href="#aba-proprietario" role="tab" aria-controls="custom-tabs-one-home" aria-selected="true">Consulta Proprietários</a>
+        <a class="nav-link active" id="aba-consulta-proprietario" data-toggle="pill" href="#aba-proprietario" role="tab" aria-controls="custom-consulta-proprietario" aria-selected="true">Consulta Proprietários</a>
     </li>
     <li class="nav-item">
         <a class="nav-link" id="aba-cadastrar-proprietario" data-toggle="pill" href="#aba-cad-proprietario" role="tab" aria-controls="custom-cadastrar-proprietario" aria-selected="true">Cadastrar Proprietário</a>
@@ -17,7 +17,15 @@
 
 {% block conteudo %}        
     <div class="tab-pane fade show active" id="aba-proprietario" role="tabpanel" aria-labelledby="custom-consulta-proprietario">                      
-        <div class="table-responsive">                          
+        <div class="table-responsive">  
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="alert table-primary alert-dismissible">  
+                        <h5>Proprietários com oportunidade de venda!</h5>                                                    
+                    </div>
+                </div>                                                            
+            </div>
+                                               
             <table id="example1" class="table table-bordered table-striped nowrap" data-lang="pt-br">
                 <thead>
                     <tr>
@@ -137,7 +145,7 @@
                             </button>
                         </div>
                         <div class="modal-body">
-                            <p>Deseja realmente excluir o Proprietário ?</p>
+                            <p>Deseja realmente excluir o Proprietário e seus Veículos ?</p>
                         </div>
                         <div class="modal-footer justify-content-between">                        
                             <button type="submit" class="btn btn-outline-light" name="btnExcluirProp" value="btnExcluirProp">Confirmar Exclusão</button>
@@ -151,6 +159,14 @@
 
     <div class="tab-pane fade" id="aba-cad-veiculo" role="tabpanel" aria-labelledby="custom-cadastrar-veiculo">
         <form id="formCadastroVeiculo" action="" method="post">            
+            <div class="row">
+                <div class="col-sm-12" id="obs-qtde-veiculo">
+                    <div class="alert alert-danger alert-dismissible">                        
+                             O Proprietário já possui 3 veículos e não é permitido realizar novos cadastros.
+                    </div>
+                </div>
+            </div>
+            
             <div class="row">
                 <div class="col-sm-2">
                     <div class="form-group-sm">
@@ -216,7 +232,7 @@
                 <div class="col-md-2">
                     <div class="form-group-sm">
                         <label>Placa</label>
-                        <input type="text" class="form-control hab-campos-veiculo limpar-campos-veiculo" name="placa" id="placa">
+                        <input type="text" class="form-control hab-campos-veiculo limpar-campos-veiculo" name="placa" id="placa" data-mask="AAA-0000">
                     </div>
                 </div>
                 <div class="col-sm-6">                    
@@ -285,20 +301,7 @@
                             <th>Sit.</th>                            
                         </tr>
                     </thead>
-                    <tbody id="#tbody-veiculo">
-                        <!--
-                        {% for produto in produtos %}
-                            <tr>
-                                <td>{{ produto.id_produto }} - {{ produto.descricao }}</td>
-                                <td>{{ produto.id_unidade_compra }}</td>
-                                <td>{{ produto.id_unidade_venda }}</td>                           
-                                <td>{{ produto.fator_conversao }}</td>
-                                <td>{{ produto.qtde_minimo }}</td>
-                                <td>{{ produto.estoque }}</td>                                                                                                                    
-                                <td><button class="btn btn-block btn-outline-primary realizar-acerto" value="{{ produto.id_produto }}">Alterar</button></td>                                                                    
-                            </tr>
-                        {% endfor %}  
-                        -->          
+                    <tbody>                        
                     </tbody>                    
                 </table> 
             </div>    
@@ -327,19 +330,13 @@
 {% endblock %}
 
 {% block scripts %}
-    <script type="text/javascript">    
-        //var id_empresa = {{ id_empresa }}                                                                   
-    </script>
+    
     <script src="{{ url_for('static', filename='cadastro/js/cadProprietario/funcoesGerais.js')}}"></script>    
     <script src="{{ url_for('static', filename='cadastro/js/cadProprietario/btnCancelar.js')}}"></script>
     <script src="{{ url_for('static', filename='cadastro/js/cadProprietario/verificaCodigoIdProp.js')}}"></script>
     <script src="{{ url_for('static', filename='cadastro/js/cadProprietario/verificaCodigoIdVeiculo.js')}}"></script>
     <script src="{{ url_for('static', filename='cadastro/js/cadProprietario/btnSalvarExcluir.js')}}"></script>
-
-    
-    
-    
-    
+                
     <script>                                        
         $(document).ready(function () {
             $('#example1').DataTable({                
@@ -426,31 +423,39 @@
             btn_cancelar_proprietario(); 
         });
 
+        //função utilizada para carregar a aba na primeira vez que ela exibida
+        $("#aba-consulta-proprietario").on('click', function(){                      
+            var abaSelecionada = $("#aba-consulta-proprietario").attr("aria-selected");
+            
+            if (abaSelecionada == "false") {                
+                document.location.reload(true);
+            }                                                                                    
+        });        
 
         var btnAlterarRegProp = document.querySelectorAll(".alterar-prop");
         btnAlterarRegProp.forEach(alterar => {
             alterar.addEventListener('click', () => {
                 var myForm = document.querySelector("#formCadastroProp");
                 var abaCadastro = document.querySelector("#aba-cadastrar-proprietario");                 
-                var id_prop = alterar.value;
+                var idProp = alterar.value;
 
                 abaCadastro.click();
-                myForm.codProprietario.value = id_prop;
+                myForm.codProprietario.value = idProp;
                 verifica_cod_proprietario();               
             })
-        });
+        });                
 
         var btnAddVeiculo = document.querySelectorAll(".add-veiculo");
         btnAddVeiculo.forEach(alterar => {
             alterar.addEventListener('click', () => {
                 var myForm = document.querySelector("#formCadastroVeiculo");
                 var abaCadastro = document.querySelector("#aba-cadastrar-veiculo");                 
-                var id_prop = alterar.value;
+                var idProp = alterar.value;
 
                 abaCadastro.click();
-                myForm.descProprietario.value = id_prop;
-                carrega_veiculo();
-                btn_cancelar_veiculo();               
+                myForm.descProprietario.value = idProp;
+                btn_cancelar_veiculo();
+                carrega_veiculo();                                                
             })
         });
                        

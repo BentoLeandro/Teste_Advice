@@ -27,7 +27,14 @@ function btn_cancelar_veiculo() {
     var myForm = document.getElementById("formCadastroVeiculo");
     clearValidation(myForm);
 
-    document.getElementById("btn-novo-veiculo").disabled = false;
+    if (myForm.descQtdeVeiculo.value == 3) {   
+        document.querySelector("#obs-qtde-veiculo").style.visibility = "visible";     
+        document.getElementById("btn-novo-veiculo").disabled = true;
+    } else {
+        document.getElementById("btn-novo-veiculo").disabled = false;
+        document.querySelector("#obs-qtde-veiculo").style.visibility = "hidden";
+    }
+    
     document.getElementById("btn-salvar-veiculo").disabled = true;    
     document.getElementById("btn-excluir-veiculo").disabled = true;
     document.getElementById("cod-veiculo").readOnly = false;

@@ -1,27 +1,32 @@
 function verifica_cod_proprietario() { 
     var myForm = document.querySelector("#formCadastroProp");             
-    var codprop = myForm.codProprietario.value;
-    var encontrou_prop = false;    
+    var codProp = myForm.codProprietario.value;
+    var retorno = '';    
 
-    codprop = codprop.toString();
-    codprop = codprop.trim();
+    codProp = codProp.toString();
+    codProp = codProp.trim();
     
     $('#sit-prop').val("A");
-    if (codprop != "") {
-        //$('#cod-proprietario').valid();
-        //myForm.codProprietario.focus();
-        encontrou_prop = consulta_cod_proprietario_banco(myForm, codprop, 'C');        
-    }                                                                                               
-    habilita_campos(".hab-campos-prop");
+    if (codProp != "") {        
+        retorno = consulta_cod_proprietario_banco(myForm, codProp, 'C');        
+    } 
+        
+    if (retorno == 'error') {
+        alert("Código do Proprietário não encontrado!");
+        myForm.codProprietario.focus();               
+    } else {    
+        habilita_campos(".hab-campos-prop");
     
-    myForm.btnNovoProp.disabled = true;
-    myForm.codProprietario.readOnly = true;
-    myForm.bibPontosProp.disabled = true;
-    myForm.btnSalvarProp.disabled = false;
-    myForm.nome.focus();
+        myForm.btnNovoProp.disabled = true;
+        myForm.codProprietario.readOnly = true;
+        myForm.bibPontosProp.disabled = true;
+        myForm.btnSalvarProp.disabled = false;
+        myForm.nome.focus();
+    }
 }
 
 function consulta_cod_proprietario_banco(form, id_proprietario, tipo_campo) {
+    var retorno = ''; 
     var dados = {
         id_proprietario: id_proprietario               
     }
@@ -30,11 +35,11 @@ function consulta_cod_proprietario_banco(form, id_proprietario, tipo_campo) {
         url: '/buscarproprietario',
         data: dados,        
         dataType: 'text',
+        async: false,
         error: function(ret){
             console.log(ret);
         },
-        success: function(ret){    
-            console.log(ret);        
+        success: function(ret){                       
             var prop = JSON.parse(ret);
 
             if (!('retorno' in prop)){ 
@@ -60,11 +65,21 @@ function consulta_cod_proprietario_banco(form, id_proprietario, tipo_campo) {
                     form.descNumero.value = prop.numero;
                     form.descTelefone.value = prop.telefone;  
                     form.descQtdeVeiculo.value = prop.qtde_carros;  
+                                                       
+                    if (prop.qtde_carros == 3) {
+                        form.btnNovoVeiculo.disabled = true;  
+                        document.querySelector("#obs-qtde-veiculo").style.visibility = "visible";                    
+                    } else {
+                        document.querySelector("#obs-qtde-veiculo").style.visibility = "hidden";
+                    }
                 }
-            } 
-            return true;                         
+                retorno = "success";
+            } else {
+                retorno = "error";
+            }                                     
         }
-    });    
+    });
+    return retorno;    
 }
 
 

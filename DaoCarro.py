@@ -18,7 +18,12 @@ SQL_DELETA_CARRO = """DELETE
                       FROM carford.tbcarro C
                       WHERE C.id_proprietario = %(id_prop)s AND
                             C.id_carro = %(id_carro)s
-                   """                        
+                   """ 
+
+SQL_DELETAR_CARROS_PROP = """DELETE
+                             FROM carford.tbcarro C
+                             WHERE C.id_proprietario = %(id_prop)s
+                          """
 
 SQL_VERIF_QTDE_CARRO = """SELECT COUNT(1)
                           FROM carford.tbcarro C
@@ -49,9 +54,7 @@ class CarroDao:
             cursor.execute(SQL_ATLZ_CARRO, (carro.descricao, carro.modelo, 
                                             carro.cor, carro.situacao,
                                             carro.id_proprietario, 
-                                            carro.id_carro,))
-
-                                                   
+                                            carro.id_carro,))                                                   
         else:            
             cursor.execute(SQL_CRIA_CARRO, (carro.id_proprietario, 
                                             carro.id_carro, carro.placa,
@@ -67,6 +70,11 @@ class CarroDao:
         cursor.execute(SQL_DELETA_CARRO,{'id_prop': id_proprietario,
                                          'id_carro': id_carro})
         self.__db.commit() 
+
+    def deletar_veiculos_prop(self, id_proprietario):
+        cursor = self.__db.cursor()
+        cursor.execute(SQL_DELETAR_CARROS_PROP, {'id_prop': id_proprietario})
+        self.__db.commit()    
 
     def verifica_qtde_veiculo_cadastrato(self, id_proprietario):
         cursor = self.__db.cursor()        

@@ -24,7 +24,8 @@ SQL_DELETA_PROPRIETARIO = """DELETE
                           """                        
 
 SQL_ADICIONA_VEICULOS = """UPDATE carford.tbproprietario P
-                           SET P.qtde_carros = qtde_carros + 1
+                           SET P.qtde_carros = qtde_carros + 1,
+                               P.possui_carro = 'S'
                            WHERE P.id_proprietario = %(id_prop)s                                  
                         """
 
@@ -36,6 +37,11 @@ SQL_RETIRA_VEICULOS = """UPDATE carford.tbproprietario P
 SQL_BUSCA_QTDE_VEICULOS = """SELECT P.qtde_carros
                              FROM carford.tbproprietario P 
                              WHERE P.id_proprietario = %(id_prop)s                          
+                          """
+
+SQL_ALTERA_POSSUI_CARRO = """UPDATE carford.tbproprietario P
+                             SET P.possui_carro = 'N'
+                             WHERE P.id_proprietario = %(id_prop)s
                           """
 
 SQL_BUSCA_PROPRIETARIO = """SELECT P.id_proprietario, P.nome, P.logradouro, 
@@ -73,7 +79,7 @@ class ProprietarioDao:
         self.__db.commit()
         return prop
 
-    def deletar(self, id_proprietario):
+    def deletar(self, id_proprietario):            
         cursor = self.__db.cursor()
         cursor.execute(SQL_DELETA_PROPRIETARIO,{'id_prop': id_proprietario})
         self.__db.commit() 
@@ -86,7 +92,11 @@ class ProprietarioDao:
     def retira_qtde_veiculos(self, id_proprietario):
         cursor = self.__db.cursor()
         cursor.execute(SQL_RETIRA_VEICULOS,{'id_prop': id_proprietario})
-        self.__db.commit()      
+        self.__db.commit() 
+
+        qtde_carros = self.busca_qtde_veiculos(id_proprietario)
+        if qtde_carros == 0:
+            self.altera_possui_carro(id_proprietario)     
 
     def busca_qtde_veiculos(self, id_proprietario):       
         cursor = self.__db.cursor()        
@@ -97,7 +107,12 @@ class ProprietarioDao:
             qtde_veiculos = ret[0]                                                                                                                                                          
             return qtde_veiculos
         else:
-            return None     
+            return None  
+
+    def altera_possui_carro(self, id_proprietario):
+        cursor = self.__db.cursor()
+        cursor.execute(SQL_ALTERA_POSSUI_CARRO,{'id_prop': id_proprietario})
+        self.__db.commit()           
 
     def listar_todos_proprietarios(self):
         cursor = self.__db.cursor()

@@ -90,7 +90,8 @@ def gravar_proprietario():
         return redirect(url_for('index')) 
 
     try:       
-        if request.form.get('btnExcluirProp'):                      
+        if request.form.get('btnExcluirProp'):
+            carro_dao.deletar_veiculos_prop(id_prop)                      
             proprietario_dao.deletar(id_prop)
             flash('O proprietário foi excluído com sucesso!','success')            
         else:                                                             
@@ -218,6 +219,8 @@ def gravar_veiculo():
         flash(f'Erro.: {error}','error')        
          
     return buscar_todos_veiculos_prop()  
+
+    
                             
 
        

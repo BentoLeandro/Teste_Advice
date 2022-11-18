@@ -3,11 +3,11 @@ function verifica_btn_salvar_proprietario() {
 }
 
 function verifica_btn_salvar_veiculo() {
-    var myForm = document.querySelector("#formCadastroVeiculo");
-    $("#formCadastroVeiculo").valid();
-    
-    grava_excluir_veiculo(myForm, 'gravar');
-    btn_cancelar_veiculo();
+    if ($("#formCadastroVeiculo").valid() == true) {            
+        var myForm = document.querySelector("#formCadastroVeiculo");           
+        grava_excluir_veiculo(myForm, 'gravar');
+        btn_cancelar_veiculo();
+    }         
 }
 
 function btn_excluir_veiculo(){
@@ -33,6 +33,7 @@ function grava_excluir_veiculo(form, metodo) {
         url: '/gravarexcluirveiculo',
         data: dados,        
         dataType: 'text',
+        async: false,
         error: function(ret){
             console.log(ret);
         },

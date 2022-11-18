@@ -16,10 +16,20 @@ function desabilita_campos(classe_campos) {
     }
 } 
 
-function limpa_campos(calsse_campos) {
-    var campos = document.querySelectorAll(calsse_campos);
+function limpa_campos(classe_campos) {
+    var campos = document.querySelectorAll(classe_campos);
     for (var i = 0; i < campos.length; i++){
           campos[i].value = '';
+    }
+}
+
+function mostra_alerta_qtde_veiculos(mostra_alerta) {    
+    //var situacao = document.querySelector("#sit-lote").value;
+
+    if (mostra_alerta == 'N') {
+        document.querySelector("#obs-qtde-veiculo").style.visibility = "hidden";
+    } else {
+        document.querySelector("#obs-qtde-veiculo").style.visibility = "visible";
     }
 }
 

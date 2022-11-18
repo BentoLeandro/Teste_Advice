@@ -1,41 +1,46 @@
 
 function carrega_veiculo() {
     var myForm = document.querySelector("#formCadastroVeiculo");             
-    var codprop = myForm.descProprietario.value;    
-    var encontrou_prop = false;   
+    var codProp = myForm.descProprietario.value;    
+    var retorno = '';   
 
-    encontrou_prop = consulta_cod_proprietario_banco(myForm, codprop, 'D'); 
-    
-    busca_veiculos_prop(codprop);
+    retorno = consulta_cod_proprietario_banco(myForm, codProp, 'D'); 
+        
+    busca_veiculos_prop(codProp);
 }
 
 function verifica_cod_veiculo() { 
     var myForm = document.querySelector("#formCadastroVeiculo");             
-    var codProp = myForm.descProprietario.value;
+    var codProp = myForm.descProprietario.value;    
     var codVeiculo = myForm.codVeiculo.value;
-    var encontrou_veiculo = false; 
-    var encontrou_prop = false;   
-   
+    var retorno = '';      
+    
     codVeiculo = codVeiculo.toString();
     codVeiculo = codVeiculo.trim(); 
     
-    $('#sit-prop').val("A");
-    if (codVeiculo != "") {
-        //$('#cod-proprietario').valid();
-        //myForm.codProprietario.focus();
-        consulta_cod_veiculo_banco(myForm, codProp, codVeiculo);        
-    }                                                                                               
-    habilita_campos(".hab-campos-veiculo");
+    $('#situacao-veiculo').val("A");
+    if (codVeiculo != "") {        
+        retorno = consulta_cod_veiculo_banco(myForm, codProp, codVeiculo);                              
+    } 
     
-    
-    myForm.btnNovoVeiculo.disabled = true;
-    myForm.codVeiculo.readOnly = true;
-    myForm.bibPontosVeiculo.disabled = true;
-    myForm.btnSalvarVeiculo.disabled = false;
-    myForm.placa.focus();
+    if (retorno == 'error') {
+        alert("Código do Veículo não encontrado!");
+        myForm.codVeiculo.focus();               
+    } else if (codVeiculo != "" || myForm.descQtdeVeiculo.value < 3){                                                                                                    
+        habilita_campos(".hab-campos-veiculo");
+        $("#formCadastroVeiculo").validate(); 
+
+        myForm.btnNovoVeiculo.disabled = true;
+        myForm.codVeiculo.readOnly = true;
+        myForm.bibPontosVeiculo.disabled = true;
+        myForm.btnSalvarVeiculo.disabled = false;
+        myForm.placa.focus();
+    }
+    return;
 }
 
-function consulta_cod_veiculo_banco(form, id_proprietario, id_veiculo) {
+function consulta_cod_veiculo_banco(form, id_proprietario, id_veiculo) {    
+    var retorno = '';   
     var dados = {
         id_proprietario: id_proprietario,
         id_veiculo: id_veiculo               
@@ -45,11 +50,12 @@ function consulta_cod_veiculo_banco(form, id_proprietario, id_veiculo) {
         url: '/buscarveiculo',
         data: dados,        
         dataType: 'text',
+        async: false,
         error: function(ret){
             console.log(ret);
         },
         success: function(ret){                        
-            var veiculo = JSON.parse(ret);
+            var veiculo = JSON.parse(ret);            
 
             if (!('retorno' in veiculo)){                                  
                 form.codVeiculo.value = veiculo.id_carro;
@@ -61,10 +67,14 @@ function consulta_cod_veiculo_banco(form, id_proprietario, id_veiculo) {
                 form.corVeiculo.value = veiculo.cor; 
 
                 document.querySelector('#btn-excluir-veiculo').disabled = false;                            
-                $('select.select2').trigger('change');                                                                                    
+                $('select.select2').trigger('change');                
+                retorno = "success";                                                                                   
+            } else {                                
+                retorno = "error";                                 
             }                                                 
         }
-    });    
+    }); 
+    return retorno;   
 }
 
 function busca_veiculos_prop(id_proprietario) {
@@ -87,16 +97,18 @@ function busca_veiculos_prop(id_proprietario) {
 }
 
 function carrega_tabela_veiculos(veiculos) {
-    if (!('retorno' in veiculos)) {                
-        var tableVeiculo = document.querySelector("#table-veiculo"); 
-        var qtde_linhas = tableVeiculo.rows.length - 1; 
+    if (!('retorno' in veiculos)) {     
+        var descQtdeVeiculo = document.querySelector("#desc-qtde-veiculo");           
+        var tableVeiculo = document.querySelector("#table-veiculo");          
+        var qtdeLinhas = tableVeiculo.rows.length - 1; 
 
-        for (var i=0; i < qtde_linhas; i++) {
+        for (var i=0; i < qtdeLinhas; i++) {
             tableVeiculo.deleteRow(1);                    
         }
                                                                      
-        var seq = 1;
-        for (var veiculo of veiculos) {                                                      
+        var seq = 0;
+        for (var veiculo of veiculos) { 
+            seq++;                                                    
             var linha = tableVeiculo.insertRow(seq);                   
             
             var cel1 = linha.insertCell(0);
@@ -115,10 +127,32 @@ function carrega_tabela_veiculos(veiculos) {
             cel5.textContent =  veiculo.cor;
 
             var cel6 = linha.insertCell(5);
-            cel6.textContent =  veiculo.situacao;            
-                               
-            seq++;                                                                                                                     
-        }                
+            cel6.textContent =  veiculo.situacao; 
+            
+            var cel7 = linha.insertCell(6);
+            var button = document.createElement("button"); 
+            button.type = "button";
+            button.removeAttribute("aria-invalid");
+            button.classList.add("btn", "btn-block", "btn-outline-primary", "alterar-veiculo");            
+            button.value = veiculo.id_carro; 
+            button.textContent = "Alterar";
+            cel7.appendChild(button);            
+        }
+
+        if (descQtdeVeiculo.value != seq){
+            descQtdeVeiculo.value = seq           
+        }  
+        
+        var btnAlterVeiculo = document.querySelectorAll(".alterar-veiculo");
+        btnAlterVeiculo.forEach(alterar => {
+            alterar.addEventListener('click', () => {
+                var myForm = document.querySelector("#formCadastroVeiculo");                                
+                var idVeiculo = alterar.value;
+               
+                myForm.codVeiculo.value = idVeiculo;
+                verifica_cod_veiculo();                                                
+            })
+        });        
     }
     else {
         //
